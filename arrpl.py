@@ -36,8 +36,8 @@ class DomainError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
-  
- 
+
+
 ## generic functions
 
 def _D_(on_scalar, error_message):
@@ -108,6 +108,12 @@ def _d_index(A, r):
         except ValueError:
             ixs += [-1]
     return ixs
+
+def _d_select(A, B):
+    if isinstance(A, list) and isinstance(B, list) and len(A) == len(B):
+        return [a for (a, b) in zip(A, B) if b == 1]
+    else:
+        raise DomainError("Domain error in 'SELECT'")
   
 def _do_inner(A, lf, rf, B):	# I don't like it
     if isinstance(A[0], list):
@@ -138,6 +144,8 @@ EQ = Function(0, _D_(lambda A, B: int(A == B), 'EQ'))
 GT = Function(0, _D_(lambda A, B: int(A > B), 'GT'))
 GE = Function(0, _D_(lambda A, B: int(A >= B), 'GE'))
 NE = Function(0, _D_(lambda A, B: int(A != B), 'NE'))
+
+SELECT = Function(0, _d_select)
 
 MAP = Operator(lambda fun, xs: [fun(x) for x in xs])
 REDUCE = Operator(lambda fun, xs: _reduce(fun.diadic ,xs))
