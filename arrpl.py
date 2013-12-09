@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import math
+
 ## primitives (inspired by Ferdinand Jamitzky)
 
 class Function:
@@ -50,7 +52,7 @@ def _D_(on_scalar, error_message):
         elif isinstance(A, list) and not isinstance(B, list):
             return [_d_(a, B) for a in A]
         elif not isinstance(A, list) and isinstance(B, list):
-            return _d_(B, A)
+            return [_d_(A, b) for b in B]
         else:
             return on_scalar(A, B)
     return _d_
@@ -70,17 +72,19 @@ _d_add = _D_(lambda A, B: A+B, "'ADD'")
 _d_sub = _D_(lambda A, B: A-B, "'SUB'")
 _d_mul = _D_(lambda A, B: A*B, "'MUL'")
 _d_div = _D_(lambda A, B: A/B, "'DIV'")
+_d_pow = _D_(lambda A, B: A**B, "'POW'")
 
 _m_sub = _M_(lambda A: [_m_sub(a) for a in A], lambda A: -A)
 _m_add = _M_(lambda A: reduce(_d_add, A), lambda A: A)
 _m_div = _M_(lambda A: [_m_div(a) for a in A], lambda A: 1.0/A)
+_m_pow = _M_(lambda A: _d_pow(math.e, A), lambda A: _d_pow(math.e, A))
 _m_mirror = _M_(lambda A: [_m_wirror(a) for a in A], lambda A: A)
 _m_wirror = _M_(lambda A: A[::-1], lambda A: A)
 _m_transpose = _M_(lambda A: [list(row) for row in zip(*A)], lambda A: A)
 _m_not = _M_(lambda A: [_m_not(a) for a in A], lambda A: int(not A))
 _m_rank = _M_(lambda A: [len(A)] + _m_rank(A[0]), lambda A: [])
 
-        
+
 ## function exceptions (and hacks)        
 
 def _d_rank(r, A):
@@ -128,6 +132,7 @@ ADD = Function(_m_add, _d_add)
 SUB = Function(_m_sub, _d_sub)
 MUL = Function(0, _d_mul)
 DIV = Function(_m_div, _d_div)
+POW = Function(_m_pow, _d_pow)
 
 RANK = Function(_m_rank, _d_rank)
 INDEX = Function(_m_index, _d_index)
