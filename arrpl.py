@@ -4,8 +4,8 @@ import math
 
 ## primitives (inspired by Ferdinand Jamitzky)
 
-class Function:
-    def __init__(self, monadic, diadic, fun = 0):
+class _Function:
+    def __init__(self, monadic, diadic, fun = None):
         self.monadic = monadic
         self.diadic = diadic
         self.fun = fun
@@ -21,14 +21,28 @@ class Function:
     def __call__(self, right):
         return self.fun(right)   
 
+class Monadic(_Function):
+    def __init__(self, monadic):
+        self.monadic = monadic
+
+class Diadic(_Function):
+    def __init__(self, diadic):
+        self.diadic = diadic
+
+class Nomadic(_Function):
+    def __init__(self, monadic, diadic):
+        self.monadic = monadic
+        self.diadic = diadic
+
+
 class Operator:
-    def __init__(self, body, fun = 0):
+    def __init__(self, body, fun = None):
         self.body = body
         self.fun = fun
     def __radd__(self, left):
         return Operator(self.body, left)
     def __add__(self, right):
-        return Function(0, 0, lambda x: self.body(self.fun, right, x))
+        return _Function(None, None, lambda x: self.body(self.fun, right, x))
     def __sub__(self, right):
         return self.body(self.fun, right)
    
@@ -128,29 +142,29 @@ def _do_inner(A, lf, rf, B):	# I don't like it
 
 ## interface
 
-ADD = Function(_m_add, _d_add)
-SUB = Function(_m_sub, _d_sub)
-MUL = Function(0, _d_mul)
-DIV = Function(_m_div, _d_div)
-POW = Function(_m_pow, _d_pow)
+ADD = Nomadic(_m_add, _d_add)
+SUB = Nomadic(_m_sub, _d_sub)
+MUL = Diadic(_d_mul)
+DIV = Nomadic(_m_div, _d_div)
+POW = Nomadic(_m_pow, _d_pow)
 
-RANK = Function(_m_rank, _d_rank)
-INDEX = Function(_m_index, _d_index)
-MIRROR = Function(_m_mirror, 0)
-WIRROR = Function(_m_wirror, 0)
-TRANSPOSE = Function(_m_transpose, 0)
+RANK = Nomadic(_m_rank, _d_rank)
+INDEX = Nomadic(_m_index, _d_index)
+MIRROR = Monadic(_m_mirror)
+WIRROR = Monadic(_m_wirror)
+TRANSPOSE = Monadic(_m_transpose)
 
-NOT = Function(_m_not, 0)
-AND = Function(0, _D_(lambda A, B: int(A and B), 'AND'))
-OR = Function(0, _D_(lambda A, B: int(A or B), 'OR'))
-LT = Function(0, _D_(lambda A, B: int(A < B), 'LT'))
-LE = Function(0, _D_(lambda A, B: int(A <= B), 'LE'))
-EQ = Function(0, _D_(lambda A, B: int(A == B), 'EQ'))
-GT = Function(0, _D_(lambda A, B: int(A > B), 'GT'))
-GE = Function(0, _D_(lambda A, B: int(A >= B), 'GE'))
-NE = Function(0, _D_(lambda A, B: int(A != B), 'NE'))
+NOT = Monadic(_m_not)
+AND = Diadic(_D_(lambda A, B: int(A and B), 'AND'))
+OR = Diadic(_D_(lambda A, B: int(A or B), 'OR'))
+LT = Diadic(_D_(lambda A, B: int(A < B), 'LT'))
+LE = Diadic(_D_(lambda A, B: int(A <= B), 'LE'))
+EQ = Diadic(_D_(lambda A, B: int(A == B), 'EQ'))
+GT = Diadic(_D_(lambda A, B: int(A > B), 'GT'))
+GE = Diadic(_D_(lambda A, B: int(A >= B), 'GE'))
+NE = Diadic(_D_(lambda A, B: int(A != B), 'NE'))
 
-SELECT = Function(0, _d_select)
+SELECT = Diadic(_d_select)
 
 MAP = Operator(lambda fun, xs: [fun(x) for x in xs])
 REDUCE = Operator(lambda fun, xs: _reduce(fun.diadic ,xs))
