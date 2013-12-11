@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-import math
-
 ## primitives (inspired by Ferdinand Jamitzky)
 
 class _Function:
@@ -91,7 +89,6 @@ _d_pow = _D_(lambda A, B: A**B, "'POW'")
 _m_sub = _M_(lambda A: [_m_sub(a) for a in A], lambda A: -A)
 _m_add = _M_(lambda A: reduce(_d_add, A), lambda A: A)
 _m_div = _M_(lambda A: [_m_div(a) for a in A], lambda A: 1.0/A)
-_m_pow = _M_(lambda A: _d_pow(math.e, A), lambda A: _d_pow(math.e, A))
 _m_mirror = _M_(lambda A: [_m_wirror(a) for a in A], lambda A: A)
 _m_wirror = _M_(lambda A: A[::-1], lambda A: A)
 _m_transpose = _M_(lambda A: [list(row) for row in zip(*A)], lambda A: A)
@@ -146,7 +143,7 @@ ADD = Nomadic(_m_add, _d_add)
 SUB = Nomadic(_m_sub, _d_sub)
 MUL = Diadic(_d_mul)
 DIV = Nomadic(_m_div, _d_div)
-POW = Nomadic(_m_pow, _d_pow)
+POW = Diadic(_d_pow)
 
 RANK = Nomadic(_m_rank, _d_rank)
 INDEX = Nomadic(_m_index, _d_index)
