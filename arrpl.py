@@ -8,7 +8,8 @@ class _Function:
         self.diadic = diadic
         self.fun = fun
     def __neg__(self):
-        self.fun = self.monadic	
+        if not isinstance(self, Diadic): # for operator calls
+            self.fun = self.monadic
         return self
     def __rsub__(self, left):
         self.fun = lambda x: self.diadic(left, x)
@@ -17,7 +18,7 @@ class _Function:
     def __sub__(self, right):
         return self.fun(right)
     def __call__(self, right):
-        return self.fun(right)   
+        return self.fun(right) 
 
 class Monadic(_Function):
     def __init__(self, monadic):
@@ -80,15 +81,15 @@ def _M_(on_list, on_scalar):
 
 ## functions
 
-_d_add = _D_(lambda A, B: A+B, "'ADD'")
-_d_sub = _D_(lambda A, B: A-B, "'SUB'")
+_d_plus = _D_(lambda A, B: A+B, "'PLUS'")
+_d_minus = _D_(lambda A, B: A-B, "'MINUS'")
 _d_mul = _D_(lambda A, B: A*B, "'MUL'")
 _d_div = _D_(lambda A, B: A/B, "'DIV'")
 _d_pow = _D_(lambda A, B: A**B, "'POW'")
 _d_mod = _D_(lambda A, B: A%B, "'MOD'")
 
-_m_sub = _M_(lambda A: [_m_sub(a) for a in A], lambda A: -A)
-_m_add = _M_(lambda A: reduce(_d_add, A), lambda A: A)
+_m_plus = _M_(lambda A: [_m_add(a) for a in A], lambda A: A)
+_m_minus = _M_(lambda A: [_m_sub(a) for a in A], lambda A: -A)
 _m_div = _M_(lambda A: [_m_div(a) for a in A], lambda A: 1.0/A)
 _m_mirror = _M_(lambda A: [_m_wirror(a) for a in A], lambda A: A)
 _m_wirror = _M_(lambda A: A[::-1], lambda A: A)
@@ -140,8 +141,8 @@ def _do_inner(A, lf, rf, B):	# I don't like it
 
 ## interface
 
-ADD = Nomadic(_m_add, _d_add)
-SUB = Nomadic(_m_sub, _d_sub)
+PLUS = Nomadic(_m_plus, _d_plus)
+MINUS = Nomadic(_m_minus, _d_minus)
 MUL = Diadic(_d_mul)
 DIV = Nomadic(_m_div, _d_div)
 MOD = Diadic(_d_mod)
@@ -166,7 +167,7 @@ NE = Diadic(_D_(lambda A, B: int(A != B), 'NE'))
 SELECT = Diadic(_d_select)
 
 MAP = Operator(lambda fun, xs: [fun(x) for x in xs])
-REDUCE = Operator(lambda fun, xs: _reduce(fun.diadic ,xs))
+REDUCE = Operator(lambda fun, xs: reduce(fun.diadic ,xs))
 INNER = Operator(lambda lf, rf, xs: _do_inner(lf.left, lf.diadic, rf.diadic, xs))
 OUTER = Operator(lambda fun, xs: [[fun.diadic(x, y) for y in fun.left] for x in xs])
 
@@ -178,9 +179,12 @@ if __name__ == '__main__':
     B = [7,8]
     C = [2,1]
 
-    assert (B -ADD+INNER+MUL- C) == 22
-    assert (A -ADD+INNER+MUL- A) == [[7, 10],[15,22]]
-    assert ((-SUB- 1) -ADD- 2 -MUL- 3 -ADD+MAP- [1, 2, 3]) == [4, 5, 6]
+    assert (B -PLUS+INNER+MUL- C) == 22
+    assert (A -PLUS+INNER+MUL- A) == [[7, 10],[15,22]]
+    assert ((-MINUS- 1) -PLUS- 2 -MUL- 3 -PLUS- [1, 2, 3]) == [4, 5, 6]
+    assert -PLUS+REDUCE- [1,2,3] == 6
+    assert -MUL+REDUCE- [1,2,3,4] == 24
+    assert 4 -MINUS+MAP- [1,2,3] == [3,2,1]
 
     S = []
     while True:
